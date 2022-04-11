@@ -10,57 +10,6 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.hashers import make_password
 
 
-# class UserManager(BaseUserManager):
-   
-#     def create_user(self, phone, password, **extra_fields):
-#         """
-#         Create and save a User with the given email and password.
-#         """
-#         if not phone:
-#             raise ValueError('The phone must be set')
-#         user = self.model(phone=phone, **extra_fields)
-        
-#         user.set_password(password)
-#         user.save()
-#         return user
-
-#     def create_superuser(self, phone, password, **extra_fields):
-#         """
-#         Create and save a SuperUser with the given email and password.
-#         """
-#         extra_fields.setdefault('is_staff', True)
-#         extra_fields.setdefault('is_superuser', True)
-#         extra_fields.setdefault('is_active', True)
-
-#         if extra_fields.get('is_staff') is not True:
-#             raise ValueError('Superuser must have is_staff=True.')
-#         if extra_fields.get('is_superuser') is not True:
-#             raise ValueError('Superuser must have is_superuser=True.')
-
-#         return self.create_user(phone, password, **extra_fields)
-
-# class CustomUser(AbstractUser):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     # username = None
-#     phone = models.CharField(
-#         unique=True, max_length=15, validators=[RegexValidator("^[789]\d{9}$")]
-#     )
-#     fullname = models.CharField(
-#         _("full name"),
-#         max_length=130,null=True,blank=True,
-#     )
-#     # country_code = models.IntegerField(default=91,null=True,blank=True)
-#     email = models.EmailField(_("emailaddress"), unique=True,null=True,blank=True)
-    
-#     is_phone_verfied=models.BooleanField(default=False)
-
-#     USERNAME_FIELD = "phone"
-#     REQUIRED_FIELDS = []
-
-#     objects = UserManager()
-
-    
-
  
 
 
@@ -116,8 +65,7 @@ class MobileOtp(models.Model):
     is_phone_verfied=models.BooleanField(default=False)
 
 
-#  choices=(("Male", "Male"), ("Female", "Female"), ("Other", "Other")),
-# Profile for all
+
 class Profile(models.Model):
     id = models.UUIDField(
         primary_key=True,
@@ -137,46 +85,6 @@ class Profile(models.Model):
 
     def __str__(self):
         return str(self.upload.id)
-
-
-# ADDRESS
-STATE_CHOICES = (
-    ("Andhra Pradesh", "Andhra Pradesh"),
-    ("Arunachal Pradesh", "Arunachal Pradesh"),
-    ("Assam", "Assam"),
-    ("Bihar", "Bihar"),
-    ("Chhattisgarh", "Chhattisgarh"),
-    ("Goa", "Goa"),
-    ("Gujarat", "Gujarat"),
-    ("Haryana", "Haryana"),
-    ("Himachal Pradesh", "Himachal Pradesh"),
-    ("Jammu & Kashmir", "Jammu & Kashmir"),
-    ("Jharkhand", "Jharkhand"),
-    ("Karnataka", "Karnataka"),
-    ("Kerala", "Kerala"),
-    ("Madhya Pradesh", "Madhya Pradesh"),
-    ("Maharashtra", "Maharashtra"),
-    ("Manipur", "Manipur"),
-    ("Meghalaya", "Meghalaya"),
-    ("Mizoram ", "Mizoram"),
-    ("Nagaland", "Nagaland"),
-    ("Odisha", "Odisha"),
-    ("Punjab", "Punjab"),
-    ("Rajasthan", "Rajasthan"),
-    ("Sikkim", "Sikkim"),
-    ("Tamil Nadu", "Tamil Nadu"),
-    ("Telangana", "Telangana"),
-    ("Tripura", "Tripura"),
-    ("Uttar Pradesh", "Uttar Pradesh"),
-    ("Uttarakhand", "Uttarakhand"),
-    ("West Bengal", "West Bengal"),
-)
-
-Dtime = (
-    ("Home (7 am - 9 pm delivery)", "Home (7 am - 9 pm delivery)"),
-    ("Office (10 am - 6 pm delivery)", "Office (10 am - 6 pm delivery)"),
-    ("AnyTime", "AnyTime"),
-)
 
 
 class Address(models.Model):
@@ -209,6 +117,7 @@ class Address(models.Model):
 
 # ! Category 
 class Category(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
     date = models.DateField(auto_now_add=True)
 
@@ -224,7 +133,7 @@ class Product(models.Model):
     discountPrice = models.FloatField()
     date = models.DateTimeField(auto_now_add=True)
     stock = models.PositiveIntegerField()
-    models.FileField(upload_to='ProdcutImg',blank=True,null=True)
+    pic=models.FileField(upload_to='ProdcutImg',blank=True,null=True)
     # pic = models.ImageField(upload_to="ProdcutImg", blank=True)
     offers = models.IntegerField(default=1, null=True, blank=True)
     upload = models.ForeignKey(
@@ -340,6 +249,7 @@ class BaseOrder(models.Model):
         null=True,
         blank=True,
     )
+    # seller=models.ForeignKey(to, on_delete)
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     quantity = models.PositiveIntegerField(default=1)
@@ -383,7 +293,7 @@ class AllOrder(BaseOrder):
         editable=False,
         default=uuid.uuid4,
     )
-    status = models.CharField(max_length=100, choices=StateT)
+    status = models.CharField(max_length=100, choices=StateT,default='Pendiing')
 
 
 # ! CURRENT ORDER
@@ -420,3 +330,16 @@ class CancelOrder(BaseOrder):
     orderUser = models.ForeignKey(
         CurrentOrder, on_delete=models.CASCADE, null=True, blank=True
     )
+
+
+
+
+
+# ! NOTIFICATION MODEl
+class Notification(models.Model):
+    id = models.UUIDField( primary_key=True, editable=False,default=uuid.uuid4)
+    sender=models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True,null=True, related_name="customer")
+    recevier = models.ForeignKey(CustomUser, on_delete=models.CASCADE,blank=True,null=True, related_name="seller")
+    checked=models.BooleanField(default=False)
+    title = models.CharField(max_length=100,blank=True,null=True)
+    description = models.TextField()

@@ -1,0 +1,42 @@
+#  choices=(("Male", "Male"), ("Female", "Female"), ("Other", "Other")),
+# Profile for all
+
+
+
+
+# ADDRESS
+STATE_CHOICES = (
+    ("Andhra Pradesh", "Andhra Pradesh"),
+    ("Arunachal Pradesh", "Arunachal Pradesh"),
+    ("Assam", "Assam"),
+    ("Bihar", "Bihar"),
+    ("Chhattisgarh", "Chhattisgarh"),
+    ("Goa", "Goa"),
+    ("Gujarat", "Gujarat"),
+    ("Haryana", "Haryana"),
+    ("Himachal Pradesh", "Himachal Pradesh"),
+    ("Jammu & Kashmir", "Jammu & Kashmir"),
+    ("Jharkhand", "Jharkhand"),
+    ("Karnataka", "Karnataka"),
+    ("Kerala", "Kerala"),
+    ("Madhya Pradesh", "Madhya Pradesh"),
+    ("Maharashtra", "Maharashtra"),
+    ("Manipur", "Manipur"),
+    ("Meghalaya", "Meghalaya"),
+    ("Mizoram ", "Mizoram"),
+    ("Nagaland", "Nagaland"),
+    ("Odisha", "Odisha"),
+    ("Punjab", "Punjab"),
+    ("Rajasthan", "Rajasthan"),
+    ("Sikkim", "Sikkim"),
+    ("Tamil Nadu", "Tamil Nadu"),
+    ("Telangana", "Telangana"),
+    ("Tripura", "Tripura"),
+    ("Uttar Pradesh", "Uttar Pradesh"),
+    ("Uttarakhand", "Uttarakhand"),
+    ("West Bengal", "West Bengal"),
+)
+
+
+
+delTime 

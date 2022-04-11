@@ -143,3 +143,9 @@ class SuccessOrderAdmin(admin.ModelAdmin):
 @admin.register(CancelOrder)
 class CancelOrderAdmin(admin.ModelAdmin):
     list_display = ("id", "orderUser", "orderSeller", "ammount")  
+
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ("id", "sender", "recevier", "checked","description")  

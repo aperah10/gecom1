@@ -437,6 +437,9 @@ class OrderView(APIView):
         # print(data)
         # print(adr2)
         # print(adrs.id)
+
+        # cart=CartProduct.objects.filter(upload=request.user)
+        
         
 
         if Address.objects.filter(Q(upload=usr)) :
@@ -472,9 +475,52 @@ class OrderView(APIView):
         try:
             ser = CurrentOrderSer(order, many=True)
             alldata = ser.data
-            print(alldata)
+            # print(alldata)
 
         except:
             alldata = ser.errors
 
         return Response(alldata)
+    
+
+    def delete(self, request,pk=None):
+        idt= request.data.get("id") 
+        cus = AllOrder.objects.get(pk=idt)
+        print(cus)
+        if AllOrder.objects.filter(pk=idt).exists():
+                card = AllOrder.objects.get(pk=idt)
+                CancelOrder.objects.create()
+                card.delete()
+                res = {"error": False, "msg": " data delete"}
+                return Response(res)
+        
+        else:
+            res = {"error": True, "msg": " not have any data"}
+        return Response(res) 
+
+
+
+
+
+class NotificationView(APIView):
+    renderer_classes = [UserRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        usr=request.user
+        # print(usr)
+        noti=Notification.objects.filter(recevier=usr)
+        
+        # print(noti)
+
+        try:
+            ser = NotificationSer(noti, many=True)
+            alldata = ser.data
+            # print(alldata)
+
+        except:
+            alldata = ser.errors
+
+        return Response(alldata)
+
+

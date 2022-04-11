@@ -44,6 +44,21 @@ class ProductSer(serializers.ModelSerializer):
         fields = "__all__"
         depth = 1
 
+
+class AddProductSer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = [
+            "title",
+            "description",
+            "salesPrice",
+            "discountPrice",
+            "stock",
+            "pic",
+            "upload",
+            "category","offers"
+        ]
+
 # ALL PRODUCT SHOW DATA
 class CategorySer(serializers.ModelSerializer):
     class Meta:
@@ -119,8 +134,23 @@ class AllOrderSer(serializers.ModelSerializer):
         # depth = 2
 
 
+
+# ! Seller Order Update
+class SelOrderUpdateSer(serializers.ModelSerializer):
+    class Meta:
+        model = AllOrder
+        fields = ['status']
+
+
 class CurrentOrderSer(serializers.ModelSerializer):
     class Meta:
         model = CurrentOrder
         fields = "__all__"
         depth = 2
+
+
+class NotificationSer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = "__all__"
+        depth = 1
