@@ -10,7 +10,7 @@ from .models import *
 class RegisterSer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ["phone", "password","email","fullname"]
+        fields = ["phone", "password","email","fullname","isSeller","isCustomer"]
 
         def create(self, validated_data):
             user = CustomUser.objects.create_user(**validated_data)
@@ -113,7 +113,8 @@ class CartSer(serializers.ModelSerializer):
     class Meta:
         model = CartProduct
         fields = "__all__"
-        depth = 2
+        # fields=["id","product","quantity"]
+        depth = 3
 
 class AddCartSer(serializers.ModelSerializer):
     class Meta:
@@ -126,11 +127,11 @@ class UpdateCartSer(serializers.ModelSerializer):
         fields = [ "quantity",]
 
 # ! ORDER PAGE METHOD
-class AllOrderSer(serializers.ModelSerializer):
+class AddOrderSer(serializers.ModelSerializer):
     class Meta:
         model = AllOrder
         # fields = ['quantity','product']
-        fields = ['quantity','address','upload','product']
+        fields = ['quantity','address', "customer",'seller','product']
         # depth = 2
 
 
@@ -139,14 +140,14 @@ class AllOrderSer(serializers.ModelSerializer):
 class SelOrderUpdateSer(serializers.ModelSerializer):
     class Meta:
         model = AllOrder
-        fields = ['status']
+        fields = ['status','selOrderStatus']
 
 
-class CurrentOrderSer(serializers.ModelSerializer):
+class OrderSer(serializers.ModelSerializer):
     class Meta:
-        model = CurrentOrder
+        model = AllOrder
         fields = "__all__"
-        depth = 2
+        depth = 3
 
 
 class NotificationSer(serializers.ModelSerializer):
@@ -154,3 +155,11 @@ class NotificationSer(serializers.ModelSerializer):
         model = Notification
         fields = "__all__"
         depth = 1
+
+
+
+class AddNotificationSer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ["sender","recevier","description","title"]
+       

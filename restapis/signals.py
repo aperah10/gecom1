@@ -11,10 +11,16 @@ def save_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(
             upload=instance,
-            id=instance.id,
+            id=instance.id,isCustomer=True,
             fullname=instance.fullname,)
         CartProfile.objects.create(id=instance.id,
             upload=instance, cartUpload={})
+        if instance.isSeller==True:
+            SellerProfile.objects.create(
+            upload=instance,
+            id=instance.id,isSeller=True,
+            fullname=instance.fullname,)
+
 
 
 @receiver(post_save, sender=CartProduct)

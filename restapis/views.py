@@ -52,8 +52,8 @@ class CategoryView(ListAPIView):
 class RegisterView(APIView):
     def post(self, request, format=None):
         data = request.data
-        if CustomUser.objects.filter(Q(phone__exact=data.get('phone')) | Q(email__exact=data.get('email'))):
-            return Response({"stateCode": 201, "msg": "User Exits"}, 201)
+        # if CustomUser.objects.filter(Q(phone__exact=data.get('phone')) | Q(email__exact=data.get('email'))):
+        #     return Response({"stateCode": 201, "msg": "User Exits"}, 201)
         
         if not MobileOtp.objects.filter(phone__exact=data.get('phone')).exists(): 
           return Response({"stateCode": 400, "msg": "Phone Verify First"}, 201)
@@ -65,7 +65,8 @@ class RegisterView(APIView):
             "phone": data.get("phone"),
             "email":data.get("email"),
             "password": make_password(data.get("password")),
-            "is_phone_verfied":True
+            "is_phone_verfied":True,
+            "isSeller":data.get("isSeller")
           }
           print(new_user)
 
@@ -173,23 +174,32 @@ class ProfileView(APIView):
            
             alldata = ser.errors
     return Response(alldata,status=status.HTTP_200_OK)
-    # serializer = ProfileSer(profile)
-    # return Response(serializer.data, status=status.HTTP_200_OK)
+    
 
   def post(self,request,format=None):
-       serializer = ProfileSer(data=request.data)
-       serializer.is_valid(raise_exception=True)
-    #    print(serializer)
-       fullname = serializer.data.get('fullname')
-       gender = serializer.data.get('gender')
-       pic = serializer.data.get('pic')
-      #  print(request.user)
-      #  print(request.user.id)
-       if pic is not None:
-          mat = Profile.objects.update_or_create(id=request.user.id,upload= request.user, defaults={'fullname':fullname,'gender':gender})
-       else:
-         mat = Profile.objects.update_or_create(id=request.user.id,upload=request.user, defaults={'fullname':fullname,})
-       return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        # print(prof_data)
+        
+        # if pic is not None:
+        serializer=ProfileSer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        #     print(serializer)
+        fullname = serializer.data.get('fullname')
+        gender = serializer.data.get('gender')
+        # pic = serializer.data.get('pic')
+        pic=request.data.get('pic')
+        #     print(request.user)
+        # print(type(pic))
+        if len(pic) !=0 :
+            mat = Profile.objects.update_or_create(id=request.user.id,upload= request.user, defaults={'fullname':fullname,'gender':gender,'pic':pic})
+            # mat.save()
+        else:
+            cus=Profile.objects.get(upload=request.user)
+            # print('else')
+            # print(cus.pic)
+            mat = Profile.objects.update_or_create(id=request.user.id,upload=request.user, defaults={'fullname':fullname,'gender':gender,'pic':cus.pic})
+           
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # ! ADDRESS View 
@@ -320,41 +330,46 @@ class CartView(APIView):
     renderer_classes = [UserRenderer]
     permission_classes = [IsAuthenticated]
     # ! get cart data 
+ 
     def get(self, request):
         data = request.data
-        usr = str(request.user.id)
+        usr = request.user
         
         
-        usrCart = CartProduct.objects.filter(upload=usr)
-
+        usrCart = CartProduct.objects.filter(upload=usr.id)
+      
+        # print(usrCart)
         try:
-            ser = CartSer(usrCart, many=True)
+            ser = CartSer(usrCart,many=True)
             alldata = ser.data
+            
 
         except:
            
             alldata = ser.errors
         return Response(alldata)
     
-    # ! post cart data .get
-     # orc PROFILE POST METHOD
+    
+    # orc PROFILE POST METHOD
 
     def post(self, request):
         data = request.data
         usr = str(request.user.id) 
         # usr= data.get("customerCart")
+       
         newCart = {
             "quantity": data.get("quantity"),
             "product": data.get("product"),
             "upload": str(usr),
             
         }
+        print(newCart)
 
         if CartProduct.objects.filter(
             Q(upload__exact=usr)
             & Q(product__exact=data.get("product"))
         ):
-            return Response({"stateCode": 201, "msg": "User Exits"}, 201)
+            return Response({"stateCode": 201, "msg": "Product Allready Exits"}, 201)
         
         serializer = AddCartSer(data=newCart)
         
@@ -425,32 +440,34 @@ class OrderView(APIView):
     # !  ORDER REQUEST DATA
     def post(self, request):
         data = request.data
-        # usr = str(request.user.id)
-        # usr=data.get("upload")
-        usr=request.user.id
-        # adr=data.get("address")
-        # adrs=Address.objects.filter(upload=usr)
-        # prod=Product.objects.get(pk=data.get("product"))
-        # prod=Product.objects.filter(pk=data.get("product"))
-        # adr=Address.objects.get(upload=usr)
-        # print(prod)
-        # print(data)
-        # print(adr2)
-        # print(adrs.id)
+       
+        usr=request.user
+    
 
-        # cart=CartProduct.objects.filter(upload=request.user)
+        cart=CartProduct.objects.filter(upload=request.user.id)
         
+        for i in cart:
+            print(i)
+            print(i.product.id)
         
 
-        if Address.objects.filter(Q(upload=usr)) :
+        # if Address.objects.filter(Q(upload=usr)) :
+            # new_order = {
+            #    "product": data.get("product"),
+            #     "address": data.get("address"),
+            #     "quantity": data.get("quantity"),
+            #     "customer": usr.id,
+            #     "seller": prod.upload  }
+
             new_order = {
-               "product": data.get("product"),
+               "product": i.product.id,
                 "address": data.get("address"),
-                "quantity": data.get("quantity"),
-                "upload": usr,
-                }
+                "quantity": i.quantity,
+                "customer": request.user.id,
+                "seller": i.product.upload.id  }
+            
 
-            serializer = AllOrderSer(data=new_order)
+            serializer = AddOrderSer(data=new_order)
             
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
@@ -463,17 +480,18 @@ class OrderView(APIView):
                 )
             return Response(serializer.errors, )
 
-        return Response('Order Wrong', )
+        # return Response('Order Wrong', )
 
     # ! CURRENT ORDER data
     def get(self, request):
         usr = request.user
-        # order = CurrentOrder.objects.filter(upload=usr)
-        order =AllOrder.objects.filter(upload=usr)
-        
+      
+
+        order =AllOrder.objects.filter(customer=usr.id)
+        print(order)
 
         try:
-            ser = CurrentOrderSer(order, many=True)
+            ser = OrderSer(order, many=True)
             alldata = ser.data
             # print(alldata)
 
@@ -508,10 +526,10 @@ class NotificationView(APIView):
 
     def get(self, request):
         usr=request.user
-        # print(usr)
+     
         noti=Notification.objects.filter(recevier=usr)
         
-        # print(noti)
+       
 
         try:
             ser = NotificationSer(noti, many=True)
@@ -522,5 +540,32 @@ class NotificationView(APIView):
             alldata = ser.errors
 
         return Response(alldata)
+    
+    def post(self, request, pk=None):
+        data = request.data
+       
+       
+
+        noti_data = {
+            "sender": request.user.id,
+            "recevier": data.get("recevier"),
+            "description":data.get("description"),
+            "title":data.get("title")
+        }
+
+      
+        serializer = AddNotificationSer(data=noti_data)
+
+        
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            user = serializer.save()
+            return Response(
+                {
+                    "stateCode": 200,
+                    "msg": "enter data",
+                }
+            )
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 

@@ -145,47 +145,50 @@ class SelOrderView(APIView):
     # ! CURRENT ORDER data
     def get(self, request):
         usr = request.user
-        
-        
-        order2 =Product.objects.filter(upload=usr)
-        order=0
-        for i in order2:
-            # print(i.id)
-            ord =AllOrder.objects.filter(product=i.id)
-            order=ord
-        #     print(ord)
-        # print(order)
-        
+        order =AllOrder.objects.filter(seller=request.user.id)
         try:
-           
-            ser = CurrentOrderSer(order, many=True)
-            alldata = ser.data
+           ser = OrderSer(order, many=True)
+           alldata = ser.data
             # print(alldata)
-
         except:
             alldata = ser.errors
 
         return Response(alldata)
+
+    
+    def put(self, request,pk=None):
+        data = request.data
+        idt = data.get("id")
+        cus = AllOrder.objects.get(pk=idt)
+       
+        usr=request.user
+        new_order = {
+            "status":"Accept",
+            "selOrderStatus":data.get("selOrderStatus")
+        }
+        # print(cus.customer)
+        # print(cus.seller)
+        if data.get("status")=="Decline":
+            CancelOrder.objects.create(id=cus.id,cancelby="seller")
+            Notification.objects.create(sender=cus.seller.upload, recevier=cus.customer.upload,description="Order Cancel By User")
+            cus.delete()
+            res = {"error": False, "msg": " data delete"}
+            return Response(res)
+            
+        else: 
+            serializer = SelOrderUpdateSer(cus,data=new_order)
+            
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                user = serializer.save()
+                Notification.objects.create(sender=cus.seller.upload, recevier=cus.customer.upload,description=data.get("selOrderStatus"))
+                return Response(
+                    {
+                    "stateCode": 200,
+                    "msg": "enter data",
+                    }
+                )
+        return Response(serializer.errors)
     
 
-    def delete(self, request,pk=None):
-        idt= request.data.get("id") 
-        cus = AllOrder.objects.get(pk=idt)
-        print(cus)
-        if AllOrder.objects.filter(pk=idt).exists():
-                card = AllOrder.objects.get(pk=idt)
-                CancelOrder.objects.create()
-                card.delete()
-                res = {"error": False, "msg": " data delete"}
-                return Response(res)
-        
-        else:
-            res = {"error": True, "msg": " not have any data"}
-        return Response(res) 
-
-
-
-
-
-
-
+    

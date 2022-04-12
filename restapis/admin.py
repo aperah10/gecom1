@@ -64,6 +64,11 @@ class MobileAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("id", "upload", "gender",  "pic", "fullname")
 
+
+@admin.register(SellerProfile)
+class ProfileSellerAdmin(admin.ModelAdmin):
+    list_display = ("id", "upload", "businessname","gender",  "pic", "fullname")
+
 # ADDRESS ADMIN
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
@@ -102,13 +107,13 @@ class CartProfileAdmin(admin.ModelAdmin):
 @admin.register(AllOrder)
 class AllOrderAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
+        "id","seller","customer",
         "status",
         "product",
         "address",
         "ammount",
         "quantity",
-        "upload",
+        
     )
 
 
@@ -122,7 +127,7 @@ class CurrentOrderAdmin(admin.ModelAdmin):
         "address",
         "ammount",
         "quantity",
-        "upload",
+        # "upload",
     )
 
 
@@ -135,14 +140,14 @@ class SuccessOrderAdmin(admin.ModelAdmin):
         "product",
         "address",
         "quantity",
-        "upload",
+        # "upload",
     )
 
 
 # Cancel Order
 @admin.register(CancelOrder)
 class CancelOrderAdmin(admin.ModelAdmin):
-    list_display = ("id", "orderUser", "orderSeller", "ammount")  
+    list_display = ("id", "cancelby")  
 
 
 

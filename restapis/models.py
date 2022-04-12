@@ -33,7 +33,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_("is_active"), default=True)
     date_joined = models.DateField(_("date_joined"), default=date.today)
     change_pw = models.BooleanField(default=True)
-    isCustomer = models.BooleanField(default=True)
+    isCustomer = models.BooleanField(default=False,null=True,
+        blank=True,)
+    isSeller = models.BooleanField(default=False,null=True,
+        blank=True,)
 
     USERNAME_FIELD = "phone"
     REQUIRED_FIELDS = []
@@ -70,6 +73,7 @@ class Profile(models.Model):
     id = models.UUIDField(
         primary_key=True,
     )
+    isCustomer = models.BooleanField(default=True)
     fullname = models.CharField(max_length=100, null=True,blank=True)
     email = models.EmailField(_("emailaddress"), unique=True, null=True, blank=True)
     upload = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
@@ -86,6 +90,31 @@ class Profile(models.Model):
     def __str__(self):
         return str(self.upload.id)
 
+
+# ! Seller Profile 
+class SellerProfile(models.Model):
+    id = models.UUIDField(
+        primary_key=True,
+    )
+    isSeller = models.BooleanField(default=False)
+    fullname = models.CharField(max_length=100, null=True,blank=True)
+    email = models.EmailField(_("emailaddress"), unique=True, null=True, blank=True)
+    upload = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    gender = models.CharField(max_length=200,
+        null=True,
+        blank=True,
+    )
+    businesspic = models.ImageField(upload_to="SellerImg", blank=True, null=True)
+    businessname=models.CharField(max_length=100, null=True,
+        blank=True,)
+    pic = models.ImageField(upload_to="SellerImg", blank=True, null=True)
+
+    # @permalink
+    def get_absolute_url(self):
+        return reverse("", kwargs={"pk": self.pk})
+
+    def __str__(self):
+        return str(self.upload.id)
 
 class Address(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -137,7 +166,8 @@ class Product(models.Model):
     # pic = models.ImageField(upload_to="ProdcutImg", blank=True)
     offers = models.IntegerField(default=1, null=True, blank=True)
     upload = models.ForeignKey(
-        to=CustomUser,
+        # to=CustomUser,
+        to=SellerProfile,
         on_delete=models.CASCADE,
     )
     category = models.ForeignKey(
@@ -172,13 +202,20 @@ class CartProduct(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    upload = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    upload = models.ForeignKey(Profile, on_delete=models.CASCADE)
     # product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     ammount = models.PositiveIntegerField(default=0)
     shipPrice = models.PositiveIntegerField(default=50)
     totalAmmount = models.PositiveIntegerField(default=0)
     date = models.DateTimeField(auto_now_add=True)
+
+    def user_id(self):
+     return self.id.__str__()
+    
+    
+    def __str__(self):
+        return str(self.id)
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -242,14 +279,15 @@ StateT = (("Pending", "Pending"), ("Accept", "Accept"), ("Decline", "Decline"))
 
 # !ORDER BASE CLASS
 class BaseOrder(models.Model):
-    upload = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Profile, on_delete=models.CASCADE)
     product = models.ForeignKey(
         Product,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
-    # seller=models.ForeignKey(to, on_delete)
+    seller=models.ForeignKey(SellerProfile, on_delete=models.CASCADE, null=True,
+        blank=True)
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     quantity = models.PositiveIntegerField(default=1)
@@ -293,8 +331,12 @@ class AllOrder(BaseOrder):
         editable=False,
         default=uuid.uuid4,
     )
-    status = models.CharField(max_length=100, choices=StateT,default='Pendiing')
-
+    status = models.CharField(max_length=100, default='Pendiing')
+    selOrderStatus = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
 
 # ! CURRENT ORDER
 class CurrentOrder(BaseOrder):
@@ -320,16 +362,15 @@ class SuccessOrder(BaseOrder):
 
 
 # !CANCEL ORDER
-class CancelOrder(BaseOrder):
+class CancelOrder(models.Model):
     id = models.UUIDField(
         primary_key=True,
     )
-    orderSeller = models.ForeignKey(
-        AllOrder, on_delete=models.CASCADE, null=True, blank=True
-    )
-    orderUser = models.ForeignKey(
-        CurrentOrder, on_delete=models.CASCADE, null=True, blank=True
-    )
+    # upload = models.ForeignKey(
+    #     AllOrder, on_delete=models.CASCADE, null=True, blank=True
+    # )
+    cancelby = models.CharField(max_length=50,null=True, blank=True)
+   
 
 
 
